@@ -3,24 +3,15 @@ import random
 import time
 
 # --- הגדרות עמוד ועיצוב משחקי ---
-st.set_page_config(page_title="האתגר של עדי", page_icon="🎮", layout="centered")
+st.set_page_config(page_title="האתגר של עדי", page_icon="📐", layout="centered")
 
 st.markdown("""
 <style>
-    /* כיוון טקסט לימין */
-    .stApp {
-        direction: rtl;
-        text-align: right;
-    }
+    .stApp { direction: rtl; text-align: right; }
+    h1, h2, h3, p, span, div { text-align: right; }
     
-    /* עיצוב כותרות וטקסטים */
-    h1, h2, h3, p, span, div {
-        text-align: right;
-    }
-    
-    /* כרטיסייה לשאלה - צבעונית ויפה */
     .question-card {
-        background-color: #E3F2FD; /* כחול בהיר */
+        background-color: #E3F2FD;
         border: 2px solid #2196F3;
         border-radius: 15px;
         padding: 20px;
@@ -29,7 +20,7 @@ st.markdown("""
     }
     
     .stat-box {
-        background-color: #FFF3E0; /* כתום בהיר */
+        background-color: #FFF3E0;
         padding: 10px;
         border-radius: 10px;
         text-align: center;
@@ -37,9 +28,8 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
-    /* עיצוב כפתורים */
     .stButton>button {
-        background-color: #FF4081; /* ורוד עז */
+        background-color: #FF4081;
         color: white;
         border-radius: 20px;
         font-weight: bold;
@@ -53,7 +43,6 @@ st.markdown("""
         transform: scale(1.02);
     }
     
-    /* טקסט השאלה */
     .big-question {
         font-size: 24px;
         color: #1565C0;
@@ -74,50 +63,135 @@ if 'current_q' not in st.session_state:
 if 'input_key' not in st.session_state:
     st.session_state.input_key = 0
 
-# --- מאגר שאלות מורחב ---
-questions_pool = [
-    # אלגברה
-    {"topic": "אלגברה", "q": "פתרי: 2x = 10", "a": "5", "hint": "כמה פעמים 2 נכנס ב-10?"},
-    {"topic": "אלגברה", "q": "פתרי: x + 7 = 20", "a": "13", "hint": "תורידי 7 מ-20"},
-    {"topic": "אלגברה", "q": "מה הערך של x אם: 3x - 1 = 8", "a": "3", "hint": "קודם תוסיפי 1 לשני הצדדים, ואז תחלקו ב-3"},
-    {"topic": "אלגברה", "q": "כנס איברים: 2a + 4a + 5", "a": "6a + 5", "hint": "מחברים רק את ה-a עם ה-a"},
-    {"topic": "אלגברה", "q": "אם a=2, כמה זה 5a?", "a": "10", "hint": "5 כפול 2"},
+# --- מחולל שאלות אוטומטי (הלב של המערכת) ---
+def generate_math_problem():
+    # בוחרים באקראי סוג שאלה: 1=אלגברה, 2=גיאומטריה, 3=כללי
+    category = random.choice(['algebra', 'geometry', 'general'])
     
-    # גיאומטריה
-    {"topic": "גיאומטריה", "q": "כמה מעלות יש בזווית ישרה?", "a": "90", "hint": "כמו פינה של דף"},
-    {"topic": "גיאומטריה", "q": "משולש שווה צלעות - מה גודל כל זווית?", "a": "60", "hint": "סכום הזוויות 180, לחלק ל-3 זויות שוות"},
-    {"topic": "גיאומטריה", "q": "שטח ריבוע עם צלע 4?", "a": "16", "hint": "צלע כפול צלע (4 כפול 4)"},
-    {"topic": "גיאומטריה", "q": "היקף מלבן עם צלעות 2 ו-6?", "a": "16", "hint": "2+2+6+6"},
+    problem = {}
     
-    # חשיבה ומילולי
-    {"topic": "מילולי", "q": "ירדן קנתה 5 ארטיקים ב-5 שקלים לאחד. כמה שילמה?", "a": "25", "hint": "פעולת כפל פשוטה"},
-    {"topic": "מספרים מכוונים", "q": "כמה זה 3 - 10?", "a": "-7", "hint": "אנחנו יורדים מתחת לאפס"},
-    {"topic": "אחוזים", "q": "כמה זה 50% מתוך 100?", "a": "50", "hint": "חצי מ-100"},
-]
+    if category == 'algebra':
+        subtype = random.choice(['eq_simple', 'eq_hard', 'substitution'])
+        if subtype == 'eq_simple': # משוואה x + a = b
+            x = random.randint(2, 20)
+            a = random.randint(1, 20)
+            b = x + a
+            problem = {
+                "topic": "אלגברה (משוואות)",
+                "q": f"פתרי את המשוואה: x + {a} = {b}",
+                "a": str(x),
+                "hint": f"תפחיתי {a} מ-{b}"
+            }
+        elif subtype == 'eq_hard': # משוואה ax + b = c
+            x = random.randint(2, 10)
+            a = random.randint(2, 5)
+            b = random.randint(1, 10)
+            c = a * x + b
+            problem = {
+                "topic": "אלגברה (משוואות)",
+                "q": f"פתרי את המשוואה: {a}x + {b} = {c}",
+                "a": str(x),
+                "hint": f"קודם תחסרי {b} מהתוצאה, ואז תחלקו ב-{a}"
+            }
+        else: # הצבה: אם x=.. כמה זה..
+            x = random.randint(2, 8)
+            a = random.randint(2, 6)
+            res = a * x
+            problem = {
+                "topic": "אלגברה (הצבה)",
+                "q": f"אם x = {x}, כמה זה {a}x?",
+                "a": str(res),
+                "hint": f"פשוט תכפילי {x} ב-{a}"
+            }
 
-# פונקציה להגרלת שאלה
+    elif category == 'geometry':
+        subtype = random.choice(['rect_area', 'rect_perimeter', 'triangle_angle'])
+        if subtype == 'rect_area':
+            w = random.randint(3, 10)
+            h = random.randint(3, 10)
+            problem = {
+                "topic": "גיאומטריה (שטח)",
+                "q": f"חשבי שטח מלבן שצלעותיו {w} ו-{h}",
+                "a": str(w * h),
+                "hint": "שטח מלבן זה צלע כפול צלע"
+            }
+        elif subtype == 'rect_perimeter':
+            w = random.randint(3, 10)
+            h = random.randint(3, 10)
+            perm = 2 * (w + h)
+            problem = {
+                "topic": "גיאומטריה (היקף)",
+                "q": f"חשבי היקף מלבן שצלעותיו {w} ו-{h}",
+                "a": str(perm),
+                "hint": "חיבור כל הצלעות: פעמיים הרוחב ועוד פעמיים האורך"
+            }
+        else: # זוויות במשולש
+            a1 = random.randint(30, 80)
+            a2 = random.randint(30, 80)
+            a3 = 180 - (a1 + a2)
+            problem = {
+                "topic": "גיאומטריה (משולשים)",
+                "q": f"במשולש יש זוויות של {a1} ו-{a2} מעלות. מה גודל הזווית השלישית?",
+                "a": str(a3),
+                "hint": "סכום זוויות במשולש הוא תמיד 180"
+            }
+
+    else: # כללי / מילולי / מספרים מכוונים
+        subtype = random.choice(['percent', 'negative', 'word_prob'])
+        if subtype == 'percent':
+            num = random.choice([100, 200, 50, 400])
+            perc = random.choice([10, 20, 25, 50])
+            ans = int((perc / 100) * num)
+            problem = {
+                "topic": "אחוזים",
+                "q": f"כמה זה {perc}% מתוך {num}?",
+                "a": str(ans),
+                "hint": f"נסי לחשב כמה זה 10 אחוז ואז להכפיל, או שבר פשוט"
+            }
+        elif subtype == 'negative':
+            a = random.randint(3, 10)
+            b = random.randint(12, 20)
+            problem = {
+                "topic": "מספרים מכוונים",
+                "q": f"פתרי: {a} - {b}",
+                "a": str(a - b),
+                "hint": "המספר השני גדול יותר, אז התוצאה במינוס"
+            }
+        else:
+            price = random.randint(2, 8)
+            amount = random.randint(3, 10)
+            total = price * amount
+            problem = {
+                "topic": "בעיה מילולית",
+                "q": f"דני קנה {amount} מחברות במחיר {price} שקלים לאחת. כמה שילם?",
+                "a": str(total),
+                "hint": "תרגיל כפל פשוט"
+            }
+            
+    return problem
+
+# --- פונקציות עזר ---
 def get_new_question():
-    st.session_state.current_q = random.choice(questions_pool)
+    # כאן הקסם: במקום לשלוף מרשימה, אנחנו מייצרים שאלה חדשה
+    st.session_state.current_q = generate_math_problem()
     st.session_state.input_key += 1 
 
-# פונקציה למעבר ליום הבא
 def start_next_day():
     st.session_state.day += 1
     st.session_state.daily_progress = 0
     get_new_question()
 
-# אתחול ראשוני - חובה לוודא שיש שאלה
+# אתחול ראשוני
 if st.session_state.current_q is None:
     get_new_question()
 
-# --- לוגיקת סיום המשחק ---
+# --- מסכי סיום ---
 if st.session_state.day > 15:
     st.balloons()
     st.markdown("""
     <div style="text-align: center; padding: 50px; background-color: #D4EDDA; border-radius: 20px;">
         <h1>🏆 אלופה!!! 🏆</h1>
         <h2>סיימת את כל 15 הימים של האתגר!</h2>
-        <p>את מוכנה למבחן לגמרי!</p>
     </div>
     """, unsafe_allow_html=True)
     if st.button("התחל מחדש"):
@@ -126,7 +200,6 @@ if st.session_state.day > 15:
         st.rerun()
     st.stop()
 
-# --- לוגיקת סיום יום ---
 if st.session_state.daily_progress >= 15:
     st.markdown(f"""
     <div style="text-align: center; padding: 30px; background-color: #FFF3E0; border-radius: 20px;">
@@ -138,23 +211,18 @@ if st.session_state.daily_progress >= 15:
     st.button("להתחיל את יום המחר? ☀️", on_click=start_next_day)
     st.stop()
 
-# --- תצוגת המשחק ---
-
-# הגדרת המשתנה q בצורה בטוחה לפני השימוש
+# --- המסך הראשי ---
 q = st.session_state.current_q
 
-# כותרת עליונה עם סטטיסטיקה
 col1, col2 = st.columns(2)
 with col1:
     st.markdown(f'<div class="stat-box">📅 יום: <b>{st.session_state.day}/15</b></div>', unsafe_allow_html=True)
 with col2:
     st.markdown(f'<div class="stat-box">⭐ ניקוד: <b>{st.session_state.total_score}</b></div>', unsafe_allow_html=True)
 
-# סרגל התקדמות
 st.write(f"התקדמות יומית: {st.session_state.daily_progress}/15 שאלות")
-progress_bar = st.progress(st.session_state.daily_progress / 15)
+st.progress(st.session_state.daily_progress / 15)
 
-# הצגת השאלה
 st.markdown(f"""
 <div class="question-card">
     <div style="color: #666; font-size: 14px;">נושא: {q['topic']}</div>
@@ -162,11 +230,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# אזור הרמז
-with st.expander("💡 צריכה רמז? לחצי כאן"):
+with st.expander("💡 צריכה רמז?"):
     st.info(q['hint'])
 
-# טופס תשובה
 with st.form(key='game_form'):
     ans = st.text_input("התשובה שלך:", key=f"user_ans_{st.session_state.input_key}")
     submitted = st.form_submit_button("בדיקה ✅")
@@ -182,7 +248,6 @@ with st.form(key='game_form'):
         else:
             st.error("לא בדיוק... נסי שוב 💪")
 
-# כפתור דילוג
 if st.button("דלגי לשאלה הבאה ⏭️"):
     get_new_question()
     st.rerun()
