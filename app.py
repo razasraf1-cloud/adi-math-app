@@ -66,11 +66,14 @@ st.markdown("""
 if 'day' not in st.session_state:
     st.session_state.day = 1
 if 'daily_progress' not in st.session_state:
-    st.session_state.daily_progress = 0 # כמה שאלות פתרה היום
+    st.session_state.daily_progress = 0
 if 'total_score' not in st.session_state:
     st.session_state.total_score = 0
 if 'current_q' not in st.session_state:
     st.session_state.current_q = None
+# מזהה ייחודי לתיבת הטקסט - זה הטריק שמונע את הקריסה
+if 'input_key' not in st.session_state:
+    st.session_state.input_key = 0
 
 # --- מאגר שאלות מורחב ---
 questions_pool = [
@@ -96,7 +99,8 @@ questions_pool = [
 # פונקציה להגרלת שאלה
 def get_new_question():
     st.session_state.current_q = random.choice(questions_pool)
-    st.session_state.user_ans_input = "" # איפוס שדה הטקסט
+    # כאן השינוי: במקום למחוק טקסט, אנחנו משנים את המזהה, וזה יוצר תיבה חדשה ונקייה
+    st.session_state.input_key += 1 
 
 # פונקציה למעבר ליום הבא
 def start_next_day():
@@ -134,8 +138,8 @@ if st.session_state.daily_progress >= 15:
     """, unsafe_allow_html=True)
     st.balloons()
     
-    if st.button("להתחיל את יום המחר? ☀️", on_click=start_next_day):
-        pass # הפונקציה כבר רצה ב-on_click
+    # שימוש ב-on_click כדי למנוע בעיות
+    st.button("להתחיל את יום המחר? ☀️", on_click=start_next_day)
     st.stop()
 
 
@@ -153,36 +157,4 @@ st.write(f"התקדמות יומית: {st.session_state.daily_progress}/15 שא�
 progress_bar = st.progress(st.session_state.daily_progress / 15)
 
 # הצגת השאלה
-q = st.session_state.current_q
-
-st.markdown(f"""
-<div class="question-card">
-    <div style="color: #666; font-size: 14px;">נושא: {q['topic']}</div>
-    <div class="big-question">{q['q']}</div>
-</div>
-""", unsafe_allow_html=True)
-
-# אזור הרמז - תמיד זמין
-with st.expander("💡 צריכה רמז? לחצי כאן"):
-    st.info(q['hint'])
-
-# טופס תשובה
-with st.form(key='game_form'):
-    ans = st.text_input("התשובה שלך:", key="user_ans_input")
-    submitted = st.form_submit_button("בדיקה ✅")
-
-    if submitted:
-        if ans.strip() == q['a']:
-            st.success("נכון מאוד! 🎉")
-            st.session_state.daily_progress += 1
-            st.session_state.total_score += 10
-            time.sleep(1) # השהייה קטנה כדי לראות את ההצלחה
-            get_new_question()
-            st.rerun()
-        else:
-            st.error("לא בדיוק... נסי שוב 💪")
-
-# כפתור דילוג (אופציונלי, אם נתקעים)
-if st.button("דלגי לשאלה הבאה ⏭️"):
-    get_new_question()
-    st.rerun()
+q
