@@ -71,7 +71,6 @@ if 'total_score' not in st.session_state:
     st.session_state.total_score = 0
 if 'current_q' not in st.session_state:
     st.session_state.current_q = None
-# מזהה ייחודי לתיבת הטקסט - זה הטריק שמונע את הקריסה
 if 'input_key' not in st.session_state:
     st.session_state.input_key = 0
 
@@ -99,7 +98,6 @@ questions_pool = [
 # פונקציה להגרלת שאלה
 def get_new_question():
     st.session_state.current_q = random.choice(questions_pool)
-    # כאן השינוי: במקום למחוק טקסט, אנחנו משנים את המזהה, וזה יוצר תיבה חדשה ונקייה
     st.session_state.input_key += 1 
 
 # פונקציה למעבר ליום הבא
@@ -108,7 +106,7 @@ def start_next_day():
     st.session_state.daily_progress = 0
     get_new_question()
 
-# אתחול ראשוני
+# אתחול ראשוני - חובה לוודא שיש שאלה
 if st.session_state.current_q is None:
     get_new_question()
 
@@ -137,13 +135,13 @@ if st.session_state.daily_progress >= 15:
     </div>
     """, unsafe_allow_html=True)
     st.balloons()
-    
-    # שימוש ב-on_click כדי למנוע בעיות
     st.button("להתחיל את יום המחר? ☀️", on_click=start_next_day)
     st.stop()
 
+# --- תצוגת המשחק ---
 
-# --- המסך הראשי של המשחק ---
+# הגדרת המשתנה q בצורה בטוחה לפני השימוש
+q = st.session_state.current_q
 
 # כותרת עליונה עם סטטיסטיקה
 col1, col2 = st.columns(2)
@@ -152,9 +150,39 @@ with col1:
 with col2:
     st.markdown(f'<div class="stat-box">⭐ ניקוד: <b>{st.session_state.total_score}</b></div>', unsafe_allow_html=True)
 
-# סרגל התקדמות יומי
+# סרגל התקדמות
 st.write(f"התקדמות יומית: {st.session_state.daily_progress}/15 שאלות")
 progress_bar = st.progress(st.session_state.daily_progress / 15)
 
 # הצגת השאלה
-q
+st.markdown(f"""
+<div class="question-card">
+    <div style="color: #666; font-size: 14px;">נושא: {q['topic']}</div>
+    <div class="big-question">{q['q']}</div>
+</div>
+""", unsafe_allow_html=True)
+
+# אזור הרמז
+with st.expander("💡 צריכה רמז? לחצי כאן"):
+    st.info(q['hint'])
+
+# טופס תשובה
+with st.form(key='game_form'):
+    ans = st.text_input("התשובה שלך:", key=f"user_ans_{st.session_state.input_key}")
+    submitted = st.form_submit_button("בדיקה ✅")
+
+    if submitted:
+        if ans.strip() == q['a']:
+            st.success("נכון מאוד! 🎉")
+            st.session_state.daily_progress += 1
+            st.session_state.total_score += 10
+            time.sleep(1)
+            get_new_question()
+            st.rerun()
+        else:
+            st.error("לא בדיוק... נסי שוב 💪")
+
+# כפתור דילוג
+if st.button("דלגי לשאלה הבאה ⏭️"):
+    get_new_question()
+    st.rerun()
