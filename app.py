@@ -14,7 +14,7 @@ st.markdown("""
         text-align: right;
     }
     .stButton>button {
-        background-color: #4CAF50; /* ירוק */
+        background-color: #4CAF50;
         color: white;
         border-radius: 12px;
         font-size: 18px;
@@ -52,7 +52,7 @@ if 'questions_pool' not in st.session_state:
 
         # שאלות מילוליות
         {"topic": "חשיבה כמותית", "q": "מחיר חולצה 50 שקלים. יש הנחה של 10%. מה המחיר החדש?", "a": "45", "hint": "10% מ-50 זה 5 שקלים. תפחיתי את זה מהמחיר"},
-        {"topic": "חשיבה כמותית", "q": "רוני רץ 2 ק״מ ביום א' ו-3 ק״מ ביום ב'. כמה רץ סה״כ בשבוע אם המשיך ככה כל יום (7 ימים)?", "a": "17.5", "hint": "שאלה מכשילה? אם זה ממוצע 2.5 ליום... בואי נניח שהכוונה ל-2.5 בממוצע כפול 7"},
+        {"topic": "חשיבה כמותית", "q": "רוני רץ 2 ק״מ ביום א' ו-3 ק״מ ביום ב'. כמה רץ סה״כ בשבוע אם המשיך ככה כל יום (7 ימים)?", "a": "17.5", "hint": "2.5 ק״מ בממוצע ליום כפול 7 ימים"},
         {"topic": "מספרים מכוונים", "q": "כמה זה: 5 - (-3)?", "a": "8", "hint": "מינוס ומינוס הופך לפלוס"},
     ]
 
@@ -64,11 +64,12 @@ if 'score' not in st.session_state:
 if 'answered' not in st.session_state:
     st.session_state.answered = False
 
-# פונקציה להגרלת שאלה חדשה
+# פונקציה להגרלת שאלה חדשה (מופעלת בלחיצת כפתור)
 def next_question():
     st.session_state.current_q_index = random.randint(0, len(st.session_state.questions_pool) - 1)
     st.session_state.answered = False
-    st.session_state.user_input = "" # איפוס שדה הטקסט
+    # איפוס שדה הטקסט דרך ה-Session State מותר רק בתוך קולבק
+    st.session_state.user_input = "" 
 
 # --- ממשק משתמש ---
 st.title("📐 מתמטי-קל לעדי: אימון חופשי")
@@ -86,6 +87,7 @@ st.markdown(f"""
 
 # טופס תשובה
 with st.form(key='answer_form'):
+    # key='user_input' מקשר את השדה ל-session_state
     user_ans = st.text_input("התשובה שלך:", key="user_input")
     submit = st.form_submit_button(label="בדיקה")
 
@@ -106,8 +108,7 @@ if submit:
             if 'hint' in q_data:
                 st.info(f"💡 רמז: {q_data['hint']}")
 
-# כפתור לשאלה הבאה (מחוץ לטופס)
+# כפתור לשאלה הבאה
 st.markdown("---")
-if st.button("השאלה הבאה ➡️"):
-    next_question()
-    st.rerun()
+# התיקון: שימוש ב-on_click מונע את השגיאה
+st.button("השאלה הבאה ➡️", on_click=next_question)
